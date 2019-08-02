@@ -1,4 +1,4 @@
 export default {
-  secret: "GOnode@",
-  expiresIn: "7d"
+  secret: process.env.APP_SECRET,
+  expiresIn: process.env.APP_EXPIRESIN
 };

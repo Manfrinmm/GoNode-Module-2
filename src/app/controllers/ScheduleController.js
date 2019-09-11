@@ -4,20 +4,25 @@ import Appointments from "../models/Appointments";
 
 import { startOfDay, parseISO, endOfDay } from "date-fns";
 import { Op } from "sequelize";
-import * as Yup from "yup";
 
 class SchedulerController {
   async index(req, res) {
-    const checkUserProvider = User.findByPk(req.userId);
+    const checkUserProvider = User.findOne({
+      where: {
+        id: req.userId,
+        provider: true
+      }
+    });
 
-    // if (!checkUserProvider.provider)
-    //   return res.status(400).json({ message: "Você não é um provider" });
+    if (!checkUserProvider) {
+      return res.status(400).json({ message: "Você não é um provider" });
+    }
 
     const parsedDate = parseISO(req.query.date);
 
     const appointments = await Appointments.findAll({
       where: {
-        provider_id: 16,
+        provider_id: req.userId,
         canceled_at: null,
         date: {
           [Op.between]: [startOfDay(parsedDate), endOfDay(parsedDate)]

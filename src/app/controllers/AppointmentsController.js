@@ -10,9 +10,14 @@ import * as Yup from "yup";
 import CancellationMail from "../jobs/CancellationMail";
 import Queue from "../../lib/Queue";
 
+import { format, parseISO } from "date-fns";
+import pt from "date-fns/locale/pt";
+
+import Mail from "../../lib/Mail";
+
 class AppointmentsController {
   async index(req, res) {
-    const { page } = req.query;
+    const { page = 1 } = req.query;
 
     const appointments = await Appointments.findAll({
       where: { user_id: req.userId, canceled_at: null },
@@ -49,23 +54,22 @@ class AppointmentsController {
     if (!(await schema.isValid(req.body)))
       return res.status(400).json({ message: "Falha na validação" });
 
-    var user = await User.findByPk(req.body.provider_id);
+    const { provider_id, date } = req.body;
+
+    var user = await User.findOne({
+      where: { id: provider_id, provider: true }
+    });
 
     if (!user)
-      return res.status(404).json({ message: "Usuario não encontrado" });
+      return res.status(401).json({ message: "Provider fornecido inválido" });
 
-    if (!user.provider)
-      return res
-        .status(401)
-        .json({ message: "Provider fornecido não é um provider" });
-
-    //faz com que a hora passada no body fique em horario fechado
+    //faz com que a hora passada no body fique em horario fechado: 8:30 -> 8:00
     const hourStart = startOfHour(parseISO(req.body.date));
 
     if (isBefore(hourStart, new Date()))
-      return res.status(400).json({ message: "Data invalida" });
+      return res.status(400).json({ message: "Data inválida" });
 
-    const { provider_id } = req.body;
+    //verifica a disponibilidade
     const checkAvailability = await Appointments.findOne({
       where: {
         provider_id,
@@ -84,12 +88,13 @@ class AppointmentsController {
 
     //notificação do serviço para o provider
     user = await User.findByPk(req.userId);
+
     const formattedDate = format(hourStart, "dd' de 'MMMM', às 'H:mm'h'", {
       locale: pt
     });
 
     await Notification.create({
-      content: `Novo agendamento de ${user.name} para dia ${formattedDate}`,
+      content: `Novo agendamento de ${user.name} para o dia ${formattedDate}`,
       user: provider_id
     });
     return res.status(201).json(appointment);
@@ -131,7 +136,7 @@ class AppointmentsController {
 
     await appointment.save();
 
-    Queue.add(CancellationMail.key, {
+    await Queue.add(CancellationMail.key, {
       appointment
     });
 

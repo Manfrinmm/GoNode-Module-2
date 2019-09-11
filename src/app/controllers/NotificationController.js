@@ -25,6 +25,7 @@ class NotificationController {
         read: true
       },
       {
+        //faz com que ela retorne atualizada
         new: true
       }
     );

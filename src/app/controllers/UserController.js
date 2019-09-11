@@ -1,6 +1,7 @@
 import * as Yup from "yup";
 
 import User from "../models/User";
+import File from "../models/File";
 
 class UserController {
   async store(req, res) {
@@ -32,7 +33,6 @@ class UserController {
   }
 
   async update(req, res) {
-    //precisa melhorar as validações, quando quer somente trocar a senha
     const schema = Yup.object().shape({
       name: Yup.string(),
       email: Yup.string().email(),
@@ -55,26 +55,38 @@ class UserController {
 
     const user = await User.findByPk(req.userId);
 
-    //alterar email
+    //troca de email
     if (email !== user.email) {
-      const userExists = await User.findOne({ where: { email } });
+      const userExists = await User.findOne({
+        where: { email }
+      });
 
       if (userExists)
         return res.status(400).json({ error: "User já existente" });
     }
 
-    //alterar senha
+    //troca senha
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
       return res.status(401).json({ error: "Senha inválida" });
     }
 
-    const { id, name, provider } = await user.update(req.body);
+    await user.update(req.body);
+
+    const { id, name, avatar } = await User.findByPk(req.userId, {
+      include: [
+        {
+          model: File,
+          as: "avatar",
+          attributes: ["id", "path", "url"]
+        }
+      ]
+    });
 
     return res.status(201).json({
       id,
       name,
       email,
-      provider
+      avatar
     });
   }
 }

@@ -17,6 +17,7 @@ class Mail {
 
     this.configureTemplates();
   }
+
   configureTemplates() {
     const viewPath = resolve(__dirname, "..", "app", "views", "emails");
 

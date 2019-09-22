@@ -7,6 +7,7 @@ import {
   format,
   isAfter
 } from "date-fns";
+import { utcToZonedTime } from "date-fns-tz";
 import Appointments from "../models/Appointments";
 import { Op } from "sequelize";
 
@@ -18,7 +19,13 @@ class AvailableController {
       return res.status(400).json({ error: "Data inválida" });
     }
 
-    const searchDate = Number(date);
+    var searchDate = Number(date);
+    searchDate = utcToZonedTime(searchDate, "America/Sao_Paulo");
+    console.log("timezone");
+    // console.log(timezone);
+    console.log(
+      startOfDay(searchDate) + " data dasdsa d asdasd sd sa dsa das d"
+    );
 
     const appointments = await Appointments.findAll({
       where: {

@@ -13,19 +13,22 @@ import { Op } from "sequelize";
 
 class AvailableController {
   async index(req, res) {
-    const { date } = req.query;
+    const { date, timezone } = req.query;
 
     if (!date) {
       return res.status(400).json({ error: "Data inválida" });
     }
 
-    var searchDate = Number(date);
-    searchDate = utcToZonedTime(searchDate, "America/Sao_Paulo");
-    console.log("timezone");
-    // console.log(timezone);
-    console.log(
-      startOfDay(searchDate) + " data dasdsa d asdasd sd sa dsa das d"
-    );
+    var searchDate = utcToZonedTime(Number(date), timezone);
+    const timezone2 = utcToZonedTime(searchDate, "UTC");
+    // searchDate = utcToZonedTime(searchDate, "UTC");
+    console.log("searchDate");
+    console.log(searchDate);
+    console.log("date");
+    console.log(new Date());
+    // console.log(
+    //   startOfDay(searchDate) + " data dasdsa d asdasd sd sa dsa das d"
+    // );
 
     const appointments = await Appointments.findAll({
       where: {

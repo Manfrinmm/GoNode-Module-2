@@ -13,7 +13,7 @@ import { Op } from "sequelize";
 
 class AvailableController {
   async index(req, res) {
-    const { date, timezone } = req.query;
+    const { date, timezone, currentDate } = req.query;
 
     if (!date) {
       return res.status(400).json({ error: "Data inválida" });
@@ -29,6 +29,9 @@ class AvailableController {
     // console.log(
     //   startOfDay(searchDate) + " data dasdsa d asdasd sd sa dsa das d"
     // );
+
+    var searchDate = Number(date);
+    searchDate = utcToZonedTime(searchDate, timezone);
 
     const appointments = await Appointments.findAll({
       where: {
@@ -66,7 +69,7 @@ class AvailableController {
         time,
         value: format(value, "yyyy-MM-dd'T'HH:mm:ssxxx"),
         available:
-          isAfter(value, new Date()) &&
+          isAfter(Number(value), Number(currentDate)) &&
           !appointments.find(a => format(a.date, "HH:mm") === time)
       };
     });

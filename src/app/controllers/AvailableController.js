@@ -5,7 +5,8 @@ import {
   setMinutes,
   setSeconds,
   format,
-  isAfter
+  isAfter,
+  parseISO
 } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import Appointments from "../models/Appointments";
@@ -13,25 +14,21 @@ import { Op } from "sequelize";
 
 class AvailableController {
   async index(req, res) {
-    const { date, timezone, currentDate } = req.query;
+    const { date, timezone } = req.query;
 
     if (!date) {
       return res.status(400).json({ error: "Data inválida" });
     }
-
-    var searchDate = utcToZonedTime(Number(date), timezone);
-    const timezone2 = utcToZonedTime(searchDate, "UTC");
-    // searchDate = utcToZonedTime(searchDate, "UTC");
-    console.log("searchDate");
+    const searchDate = utcToZonedTime(new Date(Number(date)), timezone);
+    console.log("searchDate1");
     console.log(searchDate);
-    console.log("date");
-    console.log(new Date());
-    // console.log(
-    //   startOfDay(searchDate) + " data dasdsa d asdasd sd sa dsa das d"
-    // );
 
-    var searchDate = Number(date);
-    searchDate = utcToZonedTime(searchDate, timezone);
+    const currentDate = Number(date); //searchDate;
+    console.log("currentDate");
+    console.log(currentDate);
+
+    console.log("new Date()");
+    console.log(new Date(Number(date)));
 
     const appointments = await Appointments.findAll({
       where: {
@@ -69,7 +66,7 @@ class AvailableController {
         time,
         value: format(value, "yyyy-MM-dd'T'HH:mm:ssxxx"),
         available:
-          isAfter(value, searchDate) &&
+          isAfter(value, currentDate) &&
           !appointments.find(a => format(a.date, "HH:mm") === time)
       };
     });

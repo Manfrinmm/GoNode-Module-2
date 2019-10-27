@@ -5,6 +5,7 @@ import "express-async-errors";
 import { resolve } from "path";
 import Youch from "youch";
 import cors from "cors";
+import helmet from "helmet";
 import * as Sentry from "@sentry/node";
 import sentryConfig from "./config/sentry";
 import routes from "./routes";
@@ -25,6 +26,7 @@ class App {
   middlewares() {
     this.server.use(Sentry.Handlers.requestHandler());
     this.server.use(cors());
+    this.server.use(helmet());
     this.server.use(express.json());
     this.server.use(
       "/files",

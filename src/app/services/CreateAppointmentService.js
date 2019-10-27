@@ -6,6 +6,8 @@ import Appointment from "../models/Appointment";
 
 import Notification from "../schemas/Notification";
 
+import Cache from "../../lib/Cache";
+
 class CreateAppointmentService {
   async run({ provider_id, date, userId }) {
     var user = await User.findOne({
@@ -46,6 +48,9 @@ class CreateAppointmentService {
       content: `Novo agendamento de ${user.name} para o dia ${formattedDate}`,
       user: provider_id
     });
+
+    // Invalidar o cache
+    await Cache.invalidatePrefix(`user:${user.id}:appointments`);
 
     return appointment;
   }

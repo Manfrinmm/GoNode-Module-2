@@ -1,12 +1,18 @@
 import User from "../models/User";
 import File from "../models/File";
 
+import Cache from "../../lib/Cache";
+
 class UserController {
   async store(req, res) {
     const userExists = await User.findOne({ where: { email: req.body.email } });
     if (userExists) return res.status(400).json({ error: "User já existente" });
 
     const { id, name, email, provider } = await User.create(req.body);
+
+    if (provider) {
+      await Cache.invalidate("providers");
+    }
 
     return res.status(201).json({
       id,

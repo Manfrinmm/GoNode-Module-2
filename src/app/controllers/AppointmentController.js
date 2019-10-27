@@ -5,9 +5,19 @@ import Appointment from "../models/Appointment";
 import createAppointmentService from "../services/CreateAppointmentService";
 import cancelAppointmentService from "../services/cancelAppointmentService";
 
+import Cache from "../../lib/Cache";
+
 class AppointmentsController {
   async index(req, res) {
     const { page = 1 } = req.query;
+
+    const cacheKey = `user:${req.userId}:appointments:${page}`;
+
+    const cached = await Cache.get(cacheKey);
+
+    if (cached) {
+      return res.json(cached);
+    }
 
     const appointments = await Appointment.findAll({
       where: { user_id: req.userId, canceled_at: null },
@@ -31,7 +41,11 @@ class AppointmentsController {
       ]
     });
 
-    if (appointments) return res.status(200).json(appointments);
+    if (appointments) {
+      await Cache.set(cacheKey, appointments);
+
+      return res.status(200).json(appointments);
+    }
     return res.status(400).json({ message: "Você não é um provider" });
   }
 

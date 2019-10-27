@@ -1,6 +1,6 @@
 import User from "../models/User";
 import File from "../models/File";
-import Appointments from "../models/Appointments";
+import Appointment from "../models/Appointment";
 
 import { startOfDay, parseISO, endOfDay } from "date-fns";
 import { Op } from "sequelize";
@@ -20,7 +20,7 @@ class SchedulerController {
 
     const parsedDate = parseISO(req.query.date);
 
-    const appointments = await Appointments.findAll({
+    const appointments = await Appointment.findAll({
       where: {
         provider_id: req.userId,
         canceled_at: null,
